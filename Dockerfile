@@ -1,34 +1,30 @@
-ARG REPO_URL
+# Stage 1: Build with an old and vulnerable Go version
+FROM golang:1.15 as builder  # Known old version with security issues
 
-# Stage 1: Build the Go application
-FROM golang:1.23.3-alpine AS builder
-
-# Set the working directory
 WORKDIR /app
 
-# Copy the Go modules manifests if they exist
-COPY /go.mod /go.sum ./
+# Copy go modules
+COPY go.mod go.sum ./
 
-# Download the Go modules if the manifests were copied
-RUN if [ -f go.mod ]; then go mod download; fi
+# Download deps without verification
+RUN go mod download
 
-# Copy the source code
+# Copy source
 COPY . .
 
-# Build the Go application
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build -o go-server .
+# Build binary (no CGO_ENABLED=0 to keep native vulnerabilities)
+RUN GOOS=linux GOARCH=amd64 go build -o go-server .
 
-# Stage 2: Create the final image
-FROM alpine:latest
+# Stage 2: Use a known vulnerable image
+FROM alpine:3.8  # Vulnerable version with multiple CVEs
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the built binary from the builder stage
+# Copy binary from builder
 COPY --from=builder /app/go-server .
 
-# Expose the port the application runs on
+# Expose port
 EXPOSE 9001
 
-# Command to run the application
+# Run the app with root (insecure default)
 CMD ["./go-server"]
