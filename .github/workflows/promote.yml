@@ -5,6 +5,15 @@ on:
       rb-version:
         description: 'Release bundle version'     
         required: true
+      environment:
+        description: 'Environment to promote to'
+        required: true
+        default: 'QA'
+        options:
+          - QA
+          - DEV
+          - PROD
+          - TEST
 permissions:
   id-token: write
   contents: read
@@ -41,11 +50,12 @@ jobs:
           RESULT=$(opa eval --input ./evidence_graph.json --data policy/policy.rego "data.policy.output" | jq '.result[0].expressions[0].value.approved')
           echo "RESULT=${RESULT}" >> $GITHUB_ENV
 
-      - name: Promote to Test
+      - name: Promote
         run: |
           if [ "${{ env.RESULT }}" == "true" ]; then
-            jf release-bundle-promote ${{ github.actor }}-evidence-training ${{ inputs.rb-version }} QA --signing-key ${{ secrets.RB_KEY }} --sync=true
-            echo "🚀 Succesfully promoted to \`QA\` environemnt" >> $GITHUB_STEP_SUMMARY
+            jf release-bundle-promote ${{ github.actor }}-evidence-training ${{ inputs.rb-version }} ${{ inputs.environment }} --signing-key ${{ secrets.RB_KEY }} --sync=true
+            ENV=${{ inputs.environment }}
+            echo "🚀 Succesfully promoted to \`${ENV}\` environemnt" >> $GITHUB_STEP_SUMMARY
           else
             opa eval --input ./evidence_graph.json --data policy/policy.rego "data.policy.output" | jq '.result[0].expressions[0].value'
             echo "Fail promotion policy check" >> $GITHUB_STEP_SUMMARY
