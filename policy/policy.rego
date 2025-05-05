@@ -1,8 +1,7 @@
 package policy
 
 # Define the expected predicateSlugs
-expected_predicate_slugs := {"cyclonedx-vex", "approval"}
-
+expected_predicate_slugs := {"approval"}
 
 # Collect all predicateSlugs found in the input JSON
 found_predicate_slugs := {slug |
@@ -21,14 +20,14 @@ found := [slug | slug := found_predicate_slugs[_]]
 not_found := [slug | slug := expected_predicate_slugs[_]; not found_predicate_slugs[slug]]
 
 approver := {slug |
-	some m
-	slug := input.data.releaseBundleVersion.getVersion.evidenceConnection.edges[m].node.predicate.actor
+    some m
+    slug := input.data.releaseBundleVersion.getVersion.evidenceConnection.edges[m].node.predicate.actor
 }
 
-# Check if all expected predicateSlugs are present
+# Check if "approval" evidence exists and was created by tpaz1
 approved if {
-    count({slug | slug := expected_predicate_slugs[_]; slug != ""}) == count(found_predicate_slugs & expected_predicate_slugs)
-    approver = { "etingertal" }
+    "approval" in found_predicate_slugs
+    approver == {"tpaz1"}
 }
 
 output := {
@@ -38,8 +37,5 @@ output := {
     "approver": approver
 }
 
-# Provide a default output to ensure the rule always produces something
 default approved = false
-
-# Set the default rule to output the JSON
 default output = {"found": [], "approved": false}
