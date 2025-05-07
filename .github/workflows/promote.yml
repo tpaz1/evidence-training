@@ -1,4 +1,4 @@
-name: Promote-to-qa
+name: Promote
 on:
   workflow_dispatch:
     inputs:
