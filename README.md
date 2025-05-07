@@ -24,6 +24,7 @@ These are the steps we will cover suring our training:
 6. [Re-Run the promotion workflow](#run-promotion-workflow)
 7. Bonus step: [Add approver validation](#add-approver-validation)
 
+
 ***
 **Note**
 For more information about evidence on the JFrog platform, see the following resources:
