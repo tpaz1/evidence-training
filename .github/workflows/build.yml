@@ -11,7 +11,7 @@ jobs:
   Docker-build-with-evidence:
     runs-on: ubuntu-latest
     env:
-      REPO_NAME: tomp-oci-dev-local
+      REPO_NAME: tomp-docker-dev-local
     steps:
 
       - uses: actions/checkout@v4
